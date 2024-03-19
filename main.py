@@ -136,26 +136,32 @@ def encode_enc(newimg, data):
 
 # Encode data into image
 def encode(image):
-  data = st.text_input("Enter the text to be hidden"
-                       )  # Input the text to be hidden from the user
-  #img = input("Enter image name(with extension) : ")
-  #image = Image.open(img, 'r')
-
-  #data = input("Enter data to be encoded : ")
-  # if (len(data) == 0):
-  #   raise ValueError('Data is empty')
-
-  newimg = image.copy()
-  key = 'stegano'
-
-  ciphertext = playfair_encrypt(data, key)
-  #ciphertext=ciphertext.encode()
-  encode_enc(newimg, ciphertext)
-
-  new_img_name = st.text_input("Enter name of stego image(with extension) :")
-  newimg.save(new_img_name, str(new_img_name.split(".")[1].upper()))
-
-  return newimg, new_img_name
+  try:
+    data = st.text_input("Enter the text to be hidden"
+                         )  # Input the text to be hidden from the user
+    #img = input("Enter image name(with extension) : ")
+    #image = Image.open(img, 'r')
+  
+    #data = input("Enter data to be encoded : ")
+    # if (len(data) == 0):
+    #   raise ValueError('Data is empty')
+  
+    newimg = image.copy()
+    key = 'stegano'
+  
+    ciphertext = playfair_encrypt(data, key)
+    #ciphertext=ciphertext.encode()
+    encode_enc(newimg, ciphertext)
+  
+    new_img_name = st.text_input("Enter name of stego image(with extension) :")
+    #print(str(new_img_name.split(".")[1].upper()))
+    newimg.save(new_img_name, 'PNG')
+  
+    return newimg, new_img_name
+  except:
+  # Prevent the error from propagating into your Streamlit app.
+    pass
+  
 
 
 # Decode the data in the image
@@ -213,7 +219,7 @@ text-align: center;
 }
 </style>
 <div class="footer">
-<p>Developed by <a style='display: block; text-align: center;' href="https:///" target="_blank">Team cipherShroud</a></p>
+<p>Developed by <a style='display: block; text-align: center;' href="https://github.com/AyushPathak3011/cipherShroud" target="_blank">Team cipherShroud</a></p>
 </div>
 """
 
@@ -221,81 +227,85 @@ text-align: center;
 # Main Function
 def main():
   # Streamlit UI
+  try:
+    
 
-  option = st.selectbox(
-      'Choose an action',
-      ('Encode', 'Decode'))  # Ask the user to choose either encode or decode
-
-  if option == 'Encode':
-    uploaded_file = st.file_uploader(
-        "Choose a cover image",
-        key='cover_image')  # Input a file from the file browser from the user
-
-    if uploaded_file is not None:
-      image = Image.open(uploaded_file)
-      option = st.selectbox('Choose Stego type', ('Hide Image', 'Hide Text'))
-
-      if option == 'Hide Image':
-        #logic for hiding image in image
-        # Ask the user to choose either encode or decode
-        st.image(image, caption='Uploaded Cover Image.', use_column_width=True)
-        uploaded_file = st.file_uploader(
-            "Choose an image to hide", key='hide_image'
-        )  # Input a file from the file browser from the user
-        if uploaded_file is not None:
-          imageHide = Image.open(uploaded_file)
-          st.image(imageHide, caption='Image to hide.', use_column_width=True)
-
-          stego_img, new_img_name = encode_img(image, imageHide)
+    option = st.selectbox(
+        'Choose an action',
+        ('Encode', 'Decode'))  # Ask the user to choose either encode or decode
+  
+    if option == 'Encode':
+      uploaded_file = st.file_uploader(
+          "Choose a cover image",
+          key='cover_image')  # Input a file from the file browser from the user
+  
+      if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        option = st.selectbox('Choose Stego type', ('Hide Image', 'Hide Text'))
+  
+        if option == 'Hide Image':
+          #logic for hiding image in image
+          # Ask the user to choose either encode or decode
+          st.image(image, caption='Uploaded Cover Image.', use_column_width=True)
+          uploaded_file = st.file_uploader(
+              "Choose an image to hide", key='hide_image'
+          )  # Input a file from the file browser from the user
+          if uploaded_file is not None:
+            imageHide = Image.open(uploaded_file)
+            st.image(imageHide, caption='Image to hide.', use_column_width=True)
+  
+            stego_img, new_img_name = encode_img(image, imageHide)
+            if st.button('Encode'):
+              st.image(stego_img, caption='Stego Image.', use_column_width=True)
+            if new_img_name:
+              with open(new_img_name, "rb") as file:
+                btn = st.download_button(label="Download Stego image",
+                                         data=file,
+                                         file_name=new_img_name,
+                                         mime="image/png")
+  
+        elif option == 'Hide Text':
+          #logic for hiding text in image
+          st.image(image, caption='Uploaded Cover Image.', use_column_width=True)
+          newimg, new_img_name = encode(image)
           if st.button('Encode'):
-            st.image(stego_img, caption='Stego Image.', use_column_width=True)
-          if new_img_name:
-            with open(new_img_name, "rb") as file:
-              btn = st.download_button(label="Download Stego image",
-                                       data=file,
-                                       file_name=new_img_name,
-                                       mime="image/png")
-
-      elif option == 'Hide Text':
-        #logic for hiding text in image
-        st.image(image, caption='Uploaded Cover Image.', use_column_width=True)
-        newimg, new_img_name = encode(image)
-        if st.button('Encode'):
-          st.image(newimg, caption='New Stego Image.',
-                   use_column_width=True)  # Display the new stego image
-          if new_img_name:
-            with open(new_img_name, "rb") as file:
-              btn = st.download_button(label="Download Stego image",
-                                       data=file,
-                                       file_name=new_img_name,
-                                       mime="image/png")
-
-  elif option == 'Decode':
-    uploaded_file = st.file_uploader(
-        "Choose the Stego Image", key='image_to_decode'
-    )  # Input a file from the file browser from the user
-
-    image = None  # Initialize image variable
-
-    if uploaded_file is not None:
-      image = Image.open(uploaded_file)
-    if image is not None:
-      st.image(image, caption='Image to be decoded.', use_column_width=True)
-    else:
-      st.write('No image provided for decoding.')
-    option = st.selectbox('Choose Stego type',
-                          ('Extract Image', 'Extract Text'))
-    if option == 'Extract Text':
-      if st.button(
-          'Decode') and image is not None:  # Check if image is not None
-        decoded_data = decode(image)
-        st.text('Decoded Text: ' + decoded_data)  # Display the decoded text
-    elif option == 'Extract Image':
-      if st.button('Decode') and image is not None:
-        decoded_data = decode_img(image)
-        st.image(decoded_data, caption='Decoded Image.', use_column_width=True)
-
-  st.markdown(footer, unsafe_allow_html=True)
+            st.image(newimg, caption='New Stego Image.',
+                     use_column_width=True)  # Display the new stego image
+            if new_img_name:
+              with open(new_img_name, "rb") as file:
+                btn = st.download_button(label="Download Stego image",
+                                         data=file,
+                                         file_name=new_img_name,
+                                         mime="image/png")
+  
+    elif option == 'Decode':
+      uploaded_file = st.file_uploader(
+          "Choose the Stego Image", key='image_to_decode'
+      )  # Input a file from the file browser from the user
+  
+      image = None  # Initialize image variable
+  
+      if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+      if image is not None:
+        st.image(image, caption='Image to be decoded.', use_column_width=True)
+      else:
+        st.write('No image provided for decoding.')
+      option = st.selectbox('Choose Stego type',
+                            ('Extract Image', 'Extract Text'))
+      if option == 'Extract Text':
+        if st.button(
+            'Decode') and image is not None:  # Check if image is not None
+          decoded_data = decode(image)
+          st.text('Decoded Text: ' + decoded_data)  # Display the decoded text
+      elif option == 'Extract Image':
+        if st.button('Decode') and image is not None:
+          decoded_data = decode_img(image)
+          st.image(decoded_data, caption='Decoded Image.', use_column_width=True)
+  
+    st.markdown(footer, unsafe_allow_html=True)
+  except:
+    pass
 
 
 # Driver Code
